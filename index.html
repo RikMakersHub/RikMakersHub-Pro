@@ -129,45 +129,6 @@ void loop() {
         </div>
 
         <!-- PROJECTS 2-5: ARDUINO UNO HARDWARE MODES -->
-        <div class="project-card">
-            <h2>🤖 Project 2: Mathematical PID Self-Balancing Robot</h2>
-            <div class="chip-container"><span class="chip">Arduino Uno</span><span class="chip">MPU6050 IMU</span><span class="chip">L298N Driver</span></div>
-            <h3>🛠️ Components</h3>
-            <ul>
-                <li>Arduino Uno R3, MPU6050 IMU, L298N Motor Driver</li>
-                <li>2x 12V DC Motors, 11.1V Li-Po Battery</li>
-            </ul>
-            <details>
-                <summary>🔌 Circuit Diagram & Code</summary>
-                <p>MPU6050 SCL/SDA to A5/A4. L298N ENA/ENB to D5/D6, IN1-IN4 to D7-D10.</p>
-                <pre><code>// PID Core Balancing Logic Snippet
-float Kp = 22.5, Ki = 140.0, Kd = 1.8;
-float input, output, setpoint = 0;
-void setup() { Wire.begin(); }
-void loop() { /* High speed angle adjustments */ }</code></pre>
-            </details>
-        </div>
-
-        <div class="project-card">
-            <h2>🧭 Project 3: Autonomous Flood-Fill Maze-Solving Rover</h2>
-            <div class="chip-container"><span class="chip">Arduino Uno</span><span class="chip">3x Ultrasonic Sensors</span><span class="chip">L293D</span></div>
-            <h3>🛠️ Components</h3>
-            <ul>
-                <li>Arduino Uno R3, 3x HC-SR04 Sensors, L293D Shield</li>
-                <li>4WD Chassis, 2x 18650 Batteries</li>
-            </ul>
-            <details>
-                <summary>🔌 Circuit Diagram & Code</summary>
-                <p>Sensors to D2-D3, D11-D12, A0-A1. Motors to Shield M1-M4.</p>
-                <pre><code>long readSensor(int trig, int echo) {
-  digitalWrite(trig, LOW); delayMicroseconds(2);
-  digitalWrite(trig, HIGH); delayMicroseconds(10);
-  digitalWrite(trig, LOW);
-  return pulseIn(echo, HIGH) / 58;
-}
-void loop() { /* Maze solving logic */ }</code></pre>
-            </details>
-        </div>
 
         <div class="project-card">
             <h2>🔒 Project 4: EEPROM Encrypted Dual-Layer Security Safe</h2>
@@ -188,23 +149,7 @@ void loop() { /* RFID/Keypad access check */ }</code></pre>
             </details>
         </div>
 
-        <div class="project-card">
-            <h2>📊 Project 5: Multiplexed 4x4x4 LED Cube Audio Matrix</h2>
-            <div class="chip-container"><span class="chip">Arduino Uno</span><span class="chip">LEDs</span><span class="chip">MSGEQ7</span></div>
-            <h3>🛠️ Components</h3>
-            <ul>
-                <li>Arduino Uno, MSGEQ7, 64x LEDs, Transistors</li>
-                <li>3.5mm Jack, Resistors</li>
-            </ul>
-            <details>
-                <summary>🔌 Circuit Diagram & Code</summary>
-                <p>Columns to D0-D13, A4-A5. Layers to A0-A3 via transistors.</p>
-                <pre><code>int strobePin = 2, resetPin = 3;
-void setup() { pinMode(strobePin, OUTPUT); }
-void loop() { /* Audio processing & multiplexing */ }</code></pre>
-            </details>
-        </div>
-
+      
         <!-- PROJECT 6: ARDUINO NANO -->
         <div class="project-card">
             <h2>🔑 Project 6: Biometric Fingerprint Vehicle Ignition System</h2>
@@ -217,11 +162,69 @@ void loop() { /* Audio processing & multiplexing */ }</code></pre>
             <details>
                 <summary>🔌 Circuit Diagram & Code</summary>
                 <p>AS608 TX/RX to D2/D3. Relay to D4.</p>
-                <pre><code>#include &lt;Adafruit_Fingerprint.h&gt;
-#include &lt;SoftwareSerial.h&gt;
-SoftwareSerial mySerial(2, 3);
-void setup() { /* Initialize sensor */ }
-void loop() { /* Biometric check */ }</code></pre>
+                <pre><code>#include <Adafruit_Fingerprint.h>
+#include <SoftwareSerial.h>
+
+// Define pins for the fingerprint sensor
+SoftwareSerial mySerial(2, 3); // RX, TX
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+
+const int relayPin = 4; // Pin to trigger the ignition relay
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial); 
+  delay(100);
+  
+  Serial.println("\n\nBiometric Vehicle Ignition System Initializing...");
+
+  // Set the data rate for the sensor serial port
+  finger.begin(57600);
+  
+  if (finger.verifyPassword()) {
+    Serial.println("Found fingerprint sensor!");
+  } else {
+    Serial.println("Did not find fingerprint sensor :(");
+    while (1) { delay(1); }
+  }
+
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, HIGH); // Set HIGH to ensure relay is off (if using Active LOW relay module)
+}
+
+void loop() {
+  getFingerprintIDez();
+  delay(50); // Don't ned to run this at full speed
+}
+
+int getFingerprintIDez() {
+  uint8_t p = finger.getImage();
+  if (p != FINGERPRINT_OK) return -1;
+
+  p = finger.image2Tz();
+  if (p != FINGERPRINT_OK) return -1;
+
+  p = finger.fingerFastSearch();
+  if (p != FINGERPRINT_OK) {
+    Serial.println("Fingerprint not found! Access Denied.");
+    return -1;
+  }
+
+  // Found a match!
+  Serial.print("Found ID #"); Serial.print(finger.fingerID);
+  Serial.print(" with confidence of "); Serial.println(finger.confidence);
+
+  // Trigger the ignition
+  Serial.println("Vehicle Started!");
+  digitalWrite(relayPin, LOW); // Turn ON the ignition relay (Assuming Active-LOW)
+  delay(3000); // Keep ignition engaged/on for 3 seconds (adjust as needed)
+  
+  digitalWrite(relayPin, HIGH); // Turn OFF relay after simulated start
+  Serial.println("Ignition turned off. Drive safely.");
+
+  return finger.fingerID;
+}
+</code></pre>
             </details>
         </div>
 
@@ -237,53 +240,102 @@ void loop() { /* Biometric check */ }</code></pre>
             <details>
                 <summary>🔌 Circuit Diagram & Code</summary>
                 <p>INA219 to A5/A4. SD Card via SPI (D13, D12, D11, D4).</p>
-                <pre><code>#include &lt;LowPower.h&gt;
-#include &lt;SPI.h&gt;
-#include &lt;SD.h&gt;
-void setup() { SD.begin(4); }
-void loop() { /* Log data, sleep */ }</code></pre>
+                <pre><code>#include <Servo.h>
+#include <LowPower.h>
+
+// --- Configurable Settings ---
+int tolerance = 10;           // LDR reading difference tolerance to prevent jitter
+int stepSize = 1;             // Degrees to move servo on each check
+
+// --- Pin Definitions ---
+const int ldrTopPin    = A0;
+const int ldrBottomPin = A1;
+const int ldrLeftPin   = A2;
+const int ldrRightPin  = A3;
+
+Servo servoVertical;
+Servo servoHorizontal;
+
+// Starting angles for the servos
+int posVertical = 90;
+int posHorizontal = 90;
+
+void setup() {
+  servoVertical.attach(9);
+  servoHorizontal.attach(10);
+  
+  // Set servos to center position on boot
+  servoVertical.write(posVertical);
+  servoHorizontal.write(posHorizontal);
+  delay(500); 
+}
+
+void loop() {
+  // 1. WAKE UP & TRACK SUN
+  trackSun();
+
+  // 2. LOG DATA (Add your SD logging or EEPROM write functions here)
+  logData();
+
+  // 3. DEEP SLEEP (Approx. 1 minute)
+  // Watchdog timer max is 8s, so we loop it 8 times (8s * 7.5 = 60s)
+  for (int i = 0; i < 8; i++) {
+    LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  }
+}
+
+void trackSun() {
+  int top = analogRead(ldrTopPin);
+  int bottom = analogRead(ldrBottomPin);
+  int left = analogRead(ldrLeftPin);
+  int right = analogRead(ldrRightPin);
+
+  // Calculate averages
+  int avgVert = (top + bottom) / 2;
+  int avgHoriz = (left + right) / 2;
+
+  // --- VERTICAL AXIS CONTROL ---
+  if (abs(top - bottom) > tolerance) {
+    if (top > bottom) {
+      posVertical += stepSize;
+    } else {
+      posVertical -= stepSize;
+    }
+  }
+
+  // --- HORIZONTAL AXIS CONTROL ---
+  if (abs(left - right) > tolerance) {
+    if (left > right) {
+      posHorizontal -= stepSize; // Reverse as needed depending on LDR orientation
+    } else {
+      posHorizontal += stepSize;
+    }
+  }
+
+  // Constrain servo limits
+  posVertical = constrain(posVertical, 0, 180);
+  posHorizontal = constrain(posHorizontal, 0, 180);
+
+  // Apply positions
+  servoVertical.write(posVertical);
+  servoHorizontal.write(posHorizontal);
+
+  // Small delay for servos to reach position before sleeping
+  delay(15); 
+}
+
+void logData() {
+  // Placeholder for logger function. 
+  // Disable low power configurations briefly if needed.
+}
+</code></pre>
             </details>
-        </div>
+       
 
         <!-- PROJECTS 8-11: ESP32 WIRELESS PLATFORMS -->
         <!-- PROJECTS 8-11: ESP32 WIRELESS PLATFORMS -->
                <!-- PROJECTS 8-10: ESP32 WIRELESS PLATFORMS -->
-        <div class="project-card">
-            <h2>🌐 Project 8: Self-Hosted Async IoT Smart Appliance Server</h2>
-            <div class="chip-container"><span class="chip">ESP32</span><span class="chip">AsyncWeb</span><span class="chip">Relays</span></div>
-            <h3>🛠️ Components</h3>
-            <ul>
-                <li>ESP32, 4-CH Relay Module, HLK-PM01 Converter</li>
-                <li>Push Buttons</li>
-            </ul>
-            <details>
-                <summary>🔌 Circuit Diagram & Code</summary>
-                <p>Relays to GPIO 26, 25, 33, 32. Buttons to 14, 12, 13, 15.</p>
-                <pre><code>#include &lt;WiFi.h&gt;
-#include &lt;ESPAsyncWebServer.h&gt;
-AsyncWebServer server(80);
-void setup() { /* Web server setup */ }
-void loop() {}</code></pre>
-            </details>
-        </div>
-
-        <div class="project-card">
-            <h2>🛡️ Project 9: Anti-Plagiarism Encrypted IoT Lock Node</h2>
-            <div class="chip-container"><span class="chip">ESP32</span><span class="chip">OLED</span><span class="chip">MOSFET</span></div>
-            <h3>🛠️ Components</h3>
-            <ul>
-                <li>ESP32, SSD1306 OLED, MOSFET, Siren</li>
-                <li>Solenoid Lock</li>
-            </ul>
-            <details>
-                <summary>🔌 Circuit Diagram & Code</summary>
-                <p>OLED to 21/22. Lock to GPIO 4. Alarm to GPIO 5.</p>
-                <pre><code>#include &lt;WiFi.h&gt;
-void verifyDeveloperAuth() { /* MAC check */ }
-void setup() { verifyDeveloperAuth(); }
-void loop() {}</code></pre>
-            </details>
-        </div>
+       
 
         <div class="project-card">
             <h2>🦾 Project 10: Low-Latency BLE Bluetooth Kinematic Robot Arm</h2>
@@ -296,9 +348,112 @@ void loop() {}</code></pre>
             <details>
                 <summary>🔌 Circuit Diagram & Code</summary>
                 <p>PCA9685 to 21/22. Servos to PCA9685 channels 0-3.</p>
-                <pre><code>#include &lt;BLEDevice.h&gt;
-#include &lt;Wire.h&gt;
-void setup() { Wire.begin(); }
-void loop() { /* BLE to Servo control */ }</code></pre>
+                <pre><code>#include <Arduino.h>
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLEUtils.h>
+#include <BLE2902.h>
+#include <ESP32Servo.h>
+
+// --- BLE UUIDs ---
+#define SERVICE_UUID           "6E400001-B5A3-F393-E0A9-E50E24DCCA9E" // UART standard for simple TX/RX
+#define CHARACTERISTIC_UUID_RX "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define CHARACTERISTIC_UUID_TX "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+
+// --- Pin Definitions for Servos ---
+const int servoPins[4] = {13, 12, 14, 27}; // Base, Shoulder, Elbow, Gripper
+Servo servos[4];
+
+BLECharacteristic *pTxCharacteristic;
+bool deviceConnected = false;
+
+// --- Low-Latency BLE Callbacks ---
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+        deviceConnected = true;
+        // Request lower connection latency (min 10ms, max 20ms) for high-speed, real-time control
+        pServer->updateConnParams(pServer->getConnId(), 8, 16, 0, 400); 
+    };
+
+    void onDisconnect(BLEServer* pServer) {
+        deviceConnected = false;
+    }
+};
+
+class MyCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+        std::string rxValue = pCharacteristic->getValue();
+
+        if (rxValue.length() > 0) {
+            // Parse incoming CSV string (e.g., "90,45,120,30")
+            // Note: For production use, consider sending byte arrays instead of strings to cut down latency further.
+            int angles[4];
+            int index = 0;
+            char *token = strtok((char*)rxValue.c_str(), ",");
+            while (token != NULL && index < 4) {
+                angles[index++] = atoi(token);
+                token = strtok(NULL, ",");
+            }
+
+            // Apply constraints & move servos
+            for (int i = 0; i < 4; i++) {
+                if(angles[i] >= 0 && angles[i] <= 180) {
+                    servos[i].write(angles[i]);
+                }
+            }
+        }
+    }
+};
+
+void setup() {
+    Serial.begin(115200);
+
+    // Attach Servos
+    for(int i = 0; i < 4; i++) {
+        servos[i].setPeriodHertz(50);
+        servos[i].attach(servoPins[i], 500, 2400); // Standard micro-servo range (500-2400us)
+    }
+
+    // Initialize BLE
+    BLEDevice::init("ESP32_Robot_Arm");
+    BLEServer *pServer = BLEDevice::createServer();
+    pServer->setCallbacks(new MyServerCallbacks());
+
+    BLEService *pService = pServer->createService(SERVICE_UUID);
+
+    pTxCharacteristic = pService->createCharacteristic(
+                            CHARACTERISTIC_UUID_TX,
+                            BLECharacteristic::PROPERTY_NOTIFY
+                        );
+    pTxCharacteristic->addDescriptor(new BLE2902());
+
+    BLECharacteristic *pRxCharacteristic = pService->createCharacteristic(
+                            CHARACTERISTIC_UUID_RX,
+                            BLECharacteristic::PROPERTY_WRITE
+                        );
+    pRxCharacteristic->setCallbacks(new MyCallbacks());
+
+    pService->start();
+
+    // Start Advertising
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06);  // functions that help with low-latency connection settings
+    pAdvertising->setMinPreferred(0x12);
+    BLEDevice::startAdvertising();
+    
+    Serial.println("Waiting a client connection to notify...");
+}
+
+void loop() {
+    // Bluetooth connection handles all processing in the callback, keep loop clear for IK logic
+    // To send sensor feedback to your app (like live encoder angles), you can use:
+    // pTxCharacteristic->setValue(String(current_angle));
+    // pTxCharacteristic->notify();
+    
+    delay(10);
+}
+</code></pre>
             </details>
         </div>
